@@ -40,6 +40,11 @@ variable. The value does not matter, only that it is set. In that case, you
 yourself must ensure that the required dependencies are available. See
 [requirements.txt](/requirements.txt) for the list of dependencies.
 
+The dependencies are pinned with hashes. When the initialization script
+creates the virtualenv, it downloads them from PyPI, or from the package index
+set in your pip configuration. To change the dependencies, see
+[Updating the Dependencies][].
+
 [Using Whisk]: #using-whisk
 ## Using Whisk
 
@@ -430,6 +435,32 @@ git submodule update --init whisk
 # Build default targets
 bitbake all-targets
 ```
+
+[Updating the Dependencies]: #updating-the-dependencies
+## Updating the Dependencies
+
+_NOTE: This section is for Whisk maintainers._
+
+The dependencies are pinned with hashes in
+[requirements-build.txt](/requirements-build.txt) and
+[requirements.txt](/requirements.txt). Do not edit these files by hand.
+Instead, edit [requirements-build.in](/requirements-build.in) or
+[requirements.in](/requirements.in), then generate the pinned files again with
+[pip-tools](https://pip-tools.readthedocs.io/). Use the oldest supported
+Python version, so that every pinned release supports it. For example, with
+Docker:
+
+```sh
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+    -v "$PWD":/src -w /src python:3.8 sh -c '
+        python -m venv /tmp/venv &&
+        /tmp/venv/bin/pip install pip-tools==7.5.2 &&
+        /tmp/venv/bin/pip-compile --allow-unsafe --generate-hashes --strip-extras requirements-build.in &&
+        /tmp/venv/bin/pip-compile --generate-hashes --strip-extras requirements.in'
+```
+
+Existing pins are kept. To update all pinned versions, add `--upgrade` to both
+`pip-compile` commands.
 
 [multiconfig]: https://www.yoctoproject.org/docs/3.1/bitbake-user-manual/bitbake-user-manual.html#executing-a-multiple-configuration-build
 [BBMASK]: https://www.yoctoproject.org/docs/3.1/bitbake-user-manual/bitbake-user-manual.html#var-bb-BBMASK
