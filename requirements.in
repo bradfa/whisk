@@ -1,0 +1,6 @@
+# See README.md to regenerate requirements.txt.
+PyYAML
+fastjsonschema
+tabulate
+tqdm
+yamllint

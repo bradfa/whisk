@@ -1,0 +1,4 @@
+# Installed before requirements.txt. setuptools builds PyYAML from source.
+# See README.md to regenerate requirements-build.txt.
+pip
+setuptools

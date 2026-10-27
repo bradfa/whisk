@@ -20,13 +20,20 @@ THIS_DIR="$(dirname $0)"
 
 cd $THIS_DIR
 
-REV="$(git rev-parse HEAD):$(shasum "requirements.txt")"
+REV="$(git rev-parse HEAD):$(shasum "requirements-build.txt" "requirements.txt")"
 
 if [ ! -e "venv/rev.txt" ] || [ "$(cat venv/rev.txt)" != "$REV" ]; then
-    python3 -m venv "venv"
+    python3 -m venv --clear "venv"
     . "venv/bin/activate"
-    pip install -U pip
-    pip install -r requirements.txt
+    # The pip version comes from requirements-build.txt, so do not suggest
+    # an upgrade
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    pip install --require-hashes --only-binary :all: -r requirements-build.txt
+    # PyYAML is built from source without its optional libyaml extension, so
+    # that no package needs a wheel for the host Python version. Build
+    # isolation would download setuptools without hash checking.
+    PYYAML_FORCE_LIBYAML=0 pip install --require-hashes --only-binary :all: \
+        --no-binary PyYAML --no-build-isolation -r requirements.txt
     echo "$REV" > "venv/rev.txt"
 fi
 
