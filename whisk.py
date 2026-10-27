@@ -15,9 +15,9 @@
 # limitations under the License.
 
 import argparse
+import fastjsonschema
 import itertools
 import json
-import jsonschema
 import os
 import pathlib
 import string
@@ -235,8 +235,8 @@ def parse_conf_file(path):
 
     try:
         with SCHEMA_FILE.open("r") as f:
-            jsonschema.validate(conf, json.load(f))
-    except jsonschema.ValidationError as e:
+            fastjsonschema.validate(json.load(f), conf)
+    except fastjsonschema.JsonSchemaValueException as e:
         print("Error validating %s: %s" % (path, e.message))
         return (None, None)
 
@@ -822,8 +822,8 @@ def validate(args):
 
     try:
         with args.conf.open("r") as f, SCHEMA_FILE.open("r") as schema:
-            jsonschema.validate(yaml.load(f, Loader=yaml.Loader), json.load(schema))
-    except jsonschema.ValidationError as e:
+            fastjsonschema.validate(json.load(schema), yaml.load(f, Loader=yaml.Loader))
+    except fastjsonschema.JsonSchemaValueException as e:
         print(e)
         ret = 1
 
